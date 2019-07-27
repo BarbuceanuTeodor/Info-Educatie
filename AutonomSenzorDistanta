@@ -1,0 +1,57 @@
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.hardware.rev.Rev2mDistanceSensor;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DistanceSensor;
+
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+
+
+
+@Autonomous(name="Autonom iNFOEDUCATIE", group="Programe")
+public class iNFOEDUCATIE extends LinearOpMode {
+
+    private DcMotor MotorSasiuSTANGA;
+    private DcMotor MotorsasiuDREAPTA;
+    private DistanceSensor SensorRange;
+
+
+    @Override
+    public void runOpMode() {
+        telemetry.addData("Status", "Initializat");
+
+        MotorSasiuSTANGA = hardwareMap.dcMotor.get("Motor-sasiu-STANGA");
+        MotorsasiuDREAPTA = hardwareMap.dcMotor.get("Motor-sasiu-DREAPTA");
+        sensorRange = hardwareMap.get(DistanceSensor.class, "SenzorDistanta");
+        Rev2mDistanceSensor sensorTimeOfFlight = (Rev2mDistanceSensor)sensorRange;
+
+       waitForStart();
+        while (opModeIsActive()) {
+            MotorSasiuSTANGA.setPower(-1);
+            MotorsasiuDREAPTA.setPower(1);
+
+            telemetry.addData("deviceName",SensorRange.getDeviceName() );
+            telemetry.addData("Distanta1", String.format("%.01f mm", SensorRange.getDistance(DistanceUnit.MM)));
+            telemetry.addData("Distanta2", String.format("%.01f cm", SensorRange.getDistance(DistanceUnit.CM)));
+            telemetry.addData("Distanta3", String.format("%.01f m", SensorRange.getDistance(DistanceUnit.METER)));
+            telemetry.addData("Distanta4", String.format("%.01f in", SensorRange.getDistance(DistanceUnit.CM)));
+
+
+            Rev2mDistanceSensor specificmethods;
+            telemetry.update();
+            if (SensorRange.getDistance(DistanceUnit.CM)<100){
+                MotorsasiuSTANGA.setPower(1);
+                MotorsasiuDREAPTA.setPower(-1);
+                sleep(1000);
+                MotorsasiuDREAPTA.setPower(0.5);
+                MotorsasiuSTANGA.setPower(0.5);
+                sleep(10000);
+            }
+            return;
+
+        }
+    
+    }
+}
