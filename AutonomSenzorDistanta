@@ -5,53 +5,191 @@ import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DistanceSensor;
-
+import com.qualcomm.robotcore.hardware.Servo;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 
+// coboare cuva si sa o ridice
 
+@Autonomous(name = "AutonomousTabara (Blocks to Java)", group = "")
+public class AutonomcuSenzorDistanta extends LinearOpMode {
 
-@Autonomous(name="Autonom iNFOEDUCATIE", group="Programe")
-public class iNFOEDUCATIE extends LinearOpMode {
-
-    private DcMotor MotorSasiuSTANGA;
+    private DcMotor MotorsasiuSTANGA;
     private DcMotor MotorsasiuDREAPTA;
-    private DistanceSensor SensorRange;
+    private DcMotor MotorRIDICARECuva;
 
+    private DcMotor MotorElice;
+    private DcMotor MotorGlisieraVerticala;
+
+    private Servo servoCuva;
+
+    private DistanceSensor sensorRange;
+    private DigitalChannel digitalTouch;
+    int distance;
+
+
+    int contorCuva = 1;
+    double posPower = 1;
+    double negPower = -1;
+    double powerCuva = 0.8;
+    double powerElice = 0.4;
+    double powerGlisiera = 0.5;
+    double power = 0;
 
     @Override
     public void runOpMode() {
-        telemetry.addData("Status", "Initializat");
-
-        MotorSasiuSTANGA = hardwareMap.dcMotor.get("Motor-sasiu-STANGA");
+        MotorsasiuSTANGA = hardwareMap.dcMotor.get("Motor-sasiu-STANGA");
         MotorsasiuDREAPTA = hardwareMap.dcMotor.get("Motor-sasiu-DREAPTA");
+        MotorRIDICARECuva = hardwareMap.dcMotor.get("Motor-RIDICARE-Cuva");
+        MotorElice = hardwareMap.dcMotor.get("Motor-ELICE");
+        MotorGlisieraVerticala = hardwareMap.dcMotor.get("Motor-Ridicare-VERTICALA");
+
+        servoCuva = hardwareMap.servo.get("Servo-stanga-rotitcuva");
+
         sensorRange = hardwareMap.get(DistanceSensor.class, "SenzorDistanta");
+
+        digitalTouch = hardwareMap.get(DigitalChannel.class, "digital_touch");
+
+        digitalTouch.setMode(DigitalChannel.Mode.INPUT);
+
+
         Rev2mDistanceSensor sensorTimeOfFlight = (Rev2mDistanceSensor)sensorRange;
 
-       waitForStart();
-        while (opModeIsActive()) {
-            MotorSasiuSTANGA.setPower(-1);
-            MotorsasiuDREAPTA.setPower(1);
+        telemetry.addData(">>", "Press start to continue");
+        telemetry.update();
+        waitForStart();
 
-            telemetry.addData("deviceName",SensorRange.getDeviceName() );
-            telemetry.addData("Distanta1", String.format("%.01f mm", SensorRange.getDistance(DistanceUnit.MM)));
-            telemetry.addData("Distanta2", String.format("%.01f cm", SensorRange.getDistance(DistanceUnit.CM)));
-            telemetry.addData("Distanta3", String.format("%.01f m", SensorRange.getDistance(DistanceUnit.METER)));
-            telemetry.addData("Distanta4", String.format("%.01f in", SensorRange.getDistance(DistanceUnit.CM)));
+        ActioneazaCuva(negPower);
+
+        if (opModeIsActive()) {
+            while (opModeIsActive()&& !isStopRequested()) {
+                MotorsasiuSTANGA.setPower(-1);
+                MotorsasiuDREAPTA.setPower(1);
+                InvarteElicea(powerElice);
+
+                if (contorCuva == 50)   // trebuie sa bage in gunoi ce a colectat
+                {
+                    MotorsasiuSTANGA.setPower(0);
+                    MotorsasiuDREAPTA.setPower(0);
+
+                    telemetry.update();
+
+                    InvarteElicea(power);
+                    ActioneazaCuva(powerCuva);
+                    sleep(1000);
+                    ActioneazaCuva(-powerCuva);
+                    sleep(1000);
+                    ActioneazaGlisieraVerticala(-powerGlisiera);
+                    sleep(1000);
+
+                    servoCuva.setPosition(0);
+                    sleep(1000);
+
+                    contorCuva = 0;
+                }
 
 
-            Rev2mDistanceSensor specificmethods;
-            telemetry.update();
-            if (SensorRange.getDistance(DistanceUnit.CM)<100){
-                MotorsasiuSTANGA.setPower(1);
-                MotorsasiuDREAPTA.setPower(-1);
-                sleep(1000);
-                MotorsasiuDREAPTA.setPower(0.5);
-                MotorsasiuSTANGA.setPower(0.5);
-                sleep(10000);
+                if (contorCuva == 0)
+                {
+                    servoCuva.setPosition(1);
+                    ActioneazaGlisieraVerticalaInJos(powerGlisiera);
+                    sleep(1000);
+                    MotorsasiuSTANGA.setPower(-1);
+                    MotorsasiuDREAPTA.setPower(1);
+
+                    telemetry.update();
+
+                }
+
+                if (digitalTouch.getState() == true) {
+                    telemetry.addData("Digital Touch", "Cosul de gunoi=GOL");
+                }
+                else {
+                    telemetry.addData("Digital Touch", "Cosul de gunoi=PLIN");
+                }
+
+                telemetry.update();
+
+
+                telemetry.addData("contorCuva", contorCuva);
+                telemetry.addData("deviceName",sensorRange.getDeviceName() );
+                telemetry.addData("range", String.format("%.01f cm", sensorRange.getDistance(DistanceUnit.CM)));
+
+                Rev2mDistanceSensor specificmethods;
+                telemetry.addData("ID", String.format("%x", sensorTimeOfFlight.getModelID()));
+                telemetry.addData("stricat", Boolean.toString(sensorTimeOfFlight.didTimeoutOccur()));
+                telemetry.update();
+                if (sensorRange.getDistance(DistanceUnit.CM)<35) {
+                detectie_distanta();
+
+                }
+
+                if (digitalTouch.getState() == true) {
+                    telemetry.addData("DigitalTouch", "Cosul de gunoi=GOL");
+                } else {
+                    telemetry.addData("DigitalTouch", "Cosul de gunoi=PLIN");
+                }
+
+                contorCuva ++;
             }
-            return;
+        }
+    }
+    public void stop1(){
+        MotorsasiuSTANGA.setPower(0);
+        MotorsasiuDREAPTA.setPower(0);
+    }
+    public void mergi (){
+        if (sensorRange.getDistance(DistanceUnit.CM)<40) {
+            detectie_distanta();
 
         }
-    
+        else {
+            MotorsasiuSTANGA.setPower(-1);
+            MotorsasiuDREAPTA.setPower(1);
+            telemetry.addData("Robot", "In curs de curatire");
+        }
     }
+    public void detectie_distanta(){
+        telemetry.addData("Orientare", "Am detectat obstacol");
+        MotorsasiuSTANGA.setPower(0);
+        MotorsasiuDREAPTA.setPower(0);
+        sleep(400);
+        MotorsasiuSTANGA.setPower(1);
+        MotorsasiuDREAPTA.setPower(1);
+        sleep(200);
+        MotorsasiuSTANGA.setPower(1);
+        MotorsasiuDREAPTA.setPower(-1);
+        sleep(250);
+        mergi();
+
+    }
+
+    public void InvarteElicea(double power)
+    {
+        MotorElice.setPower(power);
+    }
+
+    public void ActioneazaCuva(double power)
+    {
+        MotorRIDICARECuva.setPower(power);
+        sleep(800);
+        MotorRIDICARECuva.setPower(0);
+    }
+
+    public void ActioneazaGlisieraVerticala(double power)
+    {
+        MotorGlisieraVerticala.setPower(power);
+        sleep(200);
+        MotorGlisieraVerticala.setPower(0);
+    }
+
+    public void ActioneazaGlisieraVerticalaInJos(double power)
+    {
+        MotorGlisieraVerticala.setPower(power);
+        sleep(190);
+        MotorGlisieraVerticala.setPower(0);
+    }
+
+
 }
+
