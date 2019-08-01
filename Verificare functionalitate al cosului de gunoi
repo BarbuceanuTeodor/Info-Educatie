@@ -1,0 +1,23 @@
+package org.firstinspires.ftc.teamcode;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DigitalChannel;
+
+@TeleOp(name = "Cosul de Gunoi", group = "Sensor")
+public class SensorDigitalTouch2 extends LinearOpMode {
+    DigitalChannel digitalTouch;
+    @Override
+    public void runOpMode() {
+        digitalTouch = hardwareMap.get(DigitalChannel.class, "digital_touch");
+        digitalTouch.setMode(DigitalChannel.Mode.INPUT);
+        waitForStart();
+        while (opModeIsActive()) {
+            if (digitalTouch.getState() == true) {
+                telemetry.addData("Senzor de greutate", "Cosul de gunoi = GOL");
+            } else {
+                telemetry.addData("Senzor de greutate", "Cosul de gunoi = PLIN");
+            }
+            telemetry.update();
+        }
+    }
+}
