@@ -1,0 +1,324 @@
+package org.firstinspires.ftc.teamcode;
+import com.qualcomm.hardware.bosch.BNO055IMU;
+import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
+import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.util.ElapsedTime;
+
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesOrder;
+import org.firstinspires.ftc.robotcore.external.navigation.AxesReference;
+import org.firstinspires.ftc.robotcore.external.navigation.Orientation;
+
+
+@Autonomous(name="Program-Giroscopic pentru fotbalisti", group="Linear Opmode")
+public class ProgramGyroscop extends LinearOpMode {
+
+    DcMotor leftMotor;
+    DcMotor rightMotor;
+    BNO055IMU imu;
+    Orientation angles;
+    public int contor1 = 0;
+
+    @Override
+    public void runOpMode() {
+        BNO055IMU.Parameters parameters = new BNO055IMU.Parameters();
+
+        parameters.angleUnit = BNO055IMU.AngleUnit.DEGREES;
+        parameters.calibrationDataFile = "BNO055IMUCalibration.json";
+
+        leftMotor = hardwareMap.dcMotor.get("Motor-sasiu-STANGA");
+        rightMotor = hardwareMap.dcMotor.get("Motor-sasiu-DREAPTA");
+
+
+        imu = hardwareMap.get(BNO055IMU.class, "imu");
+        imu.initialize(parameters);
+
+        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+
+        leftMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+
+        telemetry.addData("Heading: ", angles.firstAngle);
+        telemetry.addData("Roll: ", angles.secondAngle);
+        telemetry.addData("Pitch: ", angles.thirdAngle);
+        telemetry.update();
+
+        waitForStart();
+        contor1 = 0;
+
+        MoveStraight();
+        sleep(4000);
+
+        while (opModeIsActive() && !isStopRequested()) {
+            while (opModeIsActive() && !isStopRequested() && contor1 < 500) {
+                recalibrare();
+                telemetry.addData("Contor:", contor1);
+                if (angles.firstAngle > -0.3 && angles.firstAngle < 0.3 && contor1 < 500) {
+                    MoveStraight();
+                    recalibrare();
+                }
+                else if (contor1 > 500 && contor1 < 520) {
+                    stop1();
+                }
+                recalibrare();
+               if (angles.firstAngle < -0.3 && contor1 < 500) {
+                    leftheadding();
+                    recalibrare();
+                }
+                else if (contor1 > 500 && contor1 < 520) {
+                    stop1();
+                }
+                recalibrare();
+                if (angles.firstAngle > 0.3 && contor1 < 500) {
+                    rightheadding();
+                    recalibrare();
+                }
+                else if (contor1 > 500 && contor1 < 520) {
+                    stop1();
+                }
+                recalibrare();
+                if (contor1 == 500) {
+                    {
+                        telemetry.addData("Status", "Am terminat");
+                        stop1();
+                        break;
+                    }
+                }
+            }
+            while(opModeIsActive() && !isStopRequested() && contor1 > 500 && contor1<1000) {
+                recalibreazateMihcaelJacksonTeRog();
+                telemetry.addData("Contor:", contor1);
+                if (angles.firstAngle > -0.3 && angles.firstAngle < 0.3 && contor1 < 1000 && contor1>500) {
+                    MoveStraightMichaelJackson();
+                    recalibreazateMihcaelJacksonTeRog();
+                }
+                else if (contor1 > 1000 && contor1 < 1020) {
+                    stop1();
+                }
+                recalibrare();
+                if (angles.firstAngle < -0.3 && contor1 < 1000 && contor1>500) {
+                    leftheaddingMichaelJackson();
+                    recalibreazateMihcaelJacksonTeRog();
+                }
+                else if (contor1 > 1000 && contor1 < 1020) {
+                    stop1();
+                }
+                recalibreazateMihcaelJacksonTeRog();
+                if (angles.firstAngle > 0.3 && contor1 < 1000 && contor1 >500) {
+                    rightheaddingMichaelJackson();
+                    recalibreazateMihcaelJacksonTeRog();
+                }
+                else if (contor1 > 1000 && contor1 < 1020) {
+                    stop1();
+                }
+                recalibreazateMihcaelJacksonTeRog();
+                if (contor1 > 1000) {
+                    {
+                        telemetry.addData("Status", "Am terminat ");
+                        stop1();
+                        break;
+                    }
+                }
+            }
+        }
+    }
+
+    public void recalibrare() {
+        if (contor1 == 500) {
+            stop1();
+            telemetry.addData("Status", "Am terminat ");
+        }
+        contor1++;
+        telemetry.addData("Contor:", contor1);
+        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        telemetry.addData("Heading: ", angles.firstAngle);
+        telemetry.addData("Roll: ", angles.secondAngle);
+        telemetry.addData("Pitch: ", angles.thirdAngle);
+        telemetry.update();
+    }
+    public void stop1(){
+        leftMotor.setPower(0);
+        rightMotor.setPower(0);
+    }
+    public void MoveStraight() {
+        recalibrare();
+        contor1++;
+        telemetry.addData("Status", "Drept");
+        telemetry.addData("Contor:",contor1);
+        waitForStart();
+
+        leftMotor.setPower(-1);
+        rightMotor.setPower(1);
+        recalibrare();
+        if (angles.firstAngle>-0.3 &&angles.firstAngle<0.3 && contor1<500)
+        {
+            recalibrare();
+            MoveStraight();recalibrare();
+        }
+        if (angles.firstAngle<-0.3 && contor1<500)
+        {
+            recalibrare();
+            leftheadding();recalibrare();
+        }
+        if (angles.firstAngle>0.3 && contor1<500){recalibrare();
+            rightheadding();recalibrare();
+        }
+        recalibrare();
+        if (contor1==500){
+            stop1();
+        }
+        sleep(100);
+        if (contor1==500){
+            stop1();
+        }
+    }
+    public void leftheadding() {
+        contor1++;
+        recalibrare();
+        telemetry.addData("Status", "Stanga");
+        telemetry.addData("Contor:",contor1);
+        double power1=-0.9;
+        double power2=1;
+        leftMotor.setPower(power1);
+        rightMotor.setPower(power2);
+        recalibrare();
+        sleep(5);
+
+        if (angles.firstAngle>-0.3 && angles.firstAngle<0.3 && contor1<500){recalibrare();
+            MoveStraight();recalibrare();
+        }
+        if (angles.firstAngle<-0.3 && contor1<500){
+            leftheadding();recalibrare();
+        }
+        if (angles.firstAngle>0.3 && contor1<500){
+            rightheadding();recalibrare();
+        }
+        if (contor1==500){
+            stop1();
+        }
+    }
+    public void rightheadding(){
+        if (contor1==500){
+            stop1();}
+        contor1++;
+        recalibrare();
+        telemetry.addData("Status", "Stanga");
+        telemetry.addData("Contor:",contor1);
+        double power3=-1;
+        double power4=0.9;
+        leftMotor.setPower(power3);
+        rightMotor.setPower(power4);
+        recalibrare();
+        sleep(5);
+        recalibrare();
+        if (angles.firstAngle>-0.3 &&angles.firstAngle<0.3 && contor1<500){recalibrare();
+            MoveStraight();recalibrare();
+        }
+        if (angles.firstAngle<-0.3 && contor1<500){
+            leftheadding();recalibrare();
+        }
+        if (angles.firstAngle>0.3 && contor1<500){
+            rightheadding();recalibrare();
+        }
+        if (contor1==500){
+            stop1();
+        }
+    }
+    public void leftheaddingMichaelJackson() {
+        contor1++;
+        recalibreazateMihcaelJacksonTeRog();
+        telemetry.addData("Status", "Stanga");
+        telemetry.addData("Contor:",contor1);
+        double power2=-0.9;
+        double power1=1;
+        leftMotor.setPower(power1);
+        rightMotor.setPower(power2);
+        recalibreazateMihcaelJacksonTeRog();
+        sleep(5);
+
+        if (angles.firstAngle>-0.3 && angles.firstAngle<0.3 && contor1<500){recalibreazateMihcaelJacksonTeRog();
+            MoveStraightMichaelJackson();recalibreazateMihcaelJacksonTeRog();
+        }
+        if (angles.firstAngle<-0.3 && contor1<500){
+            leftheaddingMichaelJackson();recalibreazateMihcaelJacksonTeRog();
+        }
+        if (angles.firstAngle>0.3 && contor1<500){
+            rightheaddingMichaelJackson();recalibreazateMihcaelJacksonTeRog();
+        }
+        if (contor1>1000){
+            stop1();
+        }
+    }
+    public void rightheaddingMichaelJackson(){
+        if (contor1==1000){
+        stop1();}
+        contor1++;
+        recalibreazateMihcaelJacksonTeRog();
+        telemetry.addData("Status", "Stanga");
+        telemetry.addData("Contor:",contor1);
+        double power4=1;
+        double power3=-0.9;
+        leftMotor.setPower(power3);
+        rightMotor.setPower(power4);
+        recalibreazateMihcaelJacksonTeRog();
+        sleep(5);
+        recalibreazateMihcaelJacksonTeRog();
+        if (angles.firstAngle>-0.3 &&angles.firstAngle<0.3 && contor1<500){recalibreazateMihcaelJacksonTeRog();
+            MoveStraightMichaelJackson();recalibreazateMihcaelJacksonTeRog();
+        }
+        if (angles.firstAngle<-0.3 && contor1<500){
+            leftheaddingMichaelJackson();recalibreazateMihcaelJacksonTeRog();
+        }
+        if (angles.firstAngle>0.3 && contor1<500){
+            rightheaddingMichaelJackson();recalibreazateMihcaelJacksonTeRog();
+        }
+        if (contor1>1000){
+            stop1();
+        }
+    }
+    public void recalibreazateMihcaelJacksonTeRog(){
+        if (contor1 > 1000) {
+            stop1();
+        }
+        contor1++;
+        telemetry.addData("Contor:", contor1);
+        angles = imu.getAngularOrientation(AxesReference.INTRINSIC, AxesOrder.ZYX, AngleUnit.DEGREES);
+        telemetry.addData("Heading: ", angles.firstAngle);
+        telemetry.addData("Roll: ", angles.secondAngle);
+        telemetry.addData("Pitch: ", angles.thirdAngle);
+        telemetry.update();
+    }
+    public void MoveStraightMichaelJackson() {
+        recalibreazateMihcaelJacksonTeRog();
+        contor1++;
+        telemetry.addData("Status", "Drept");
+        telemetry.addData("Contor:",contor1);
+        waitForStart();
+
+        leftMotor.setPower(1);
+        rightMotor.setPower(-1);
+        recalibreazateMihcaelJacksonTeRog();
+        if (angles.firstAngle>-0.3 &&angles.firstAngle<0.3 && contor1>500&& contor1<1000)
+        {recalibreazateMihcaelJacksonTeRog();
+            MoveStraightMichaelJackson();recalibreazateMihcaelJacksonTeRog();
+        }
+        if (angles.firstAngle<-0.3 && contor1<500)
+        {
+            recalibreazateMihcaelJacksonTeRog();
+            leftheaddingMichaelJackson();recalibreazateMihcaelJacksonTeRog();
+        }
+        if (angles.firstAngle>0.3 && contor1<500){recalibreazateMihcaelJacksonTeRog();
+            rightheaddingMichaelJackson();recalibreazateMihcaelJacksonTeRog();
+        }
+        recalibreazateMihcaelJacksonTeRog();
+        if (contor1>1000){
+            stop1();
+        }
+        sleep(100);
+        if (contor1>1000){
+            stop1();
+        }
+    }
+}
